@@ -1,8 +1,22 @@
-const fs = require('fs');
-const cloneDeep = require('./node_modules/lodash/cloneDeep.js');
+// const fs = require('fs');
+// const cloneDeep = require('./node_modules/lodash/cloneDeep.js');
 
-function getData() {
-    let data = fs.readFileSync('kargerMinCut.txt', 'utf8');
+// function getData() {
+//     let data = fs.readFileSync('kargerMinCut.txt', 'utf8');
+
+//     if (!data) return [];
+//     else {
+//         let roughAr = data.split("\r\n")
+//             .map(elem => elem.split("\t")
+//                 .filter(ele => ele != "")
+//                 .map(el => el.trim()))
+//             .filter(el => el.length > 1);
+
+//         return roughAr;
+//     }
+// }
+async function getData() {
+    let data = await axios.get('./data/kargerMinCut.txt').data;
 
     if (!data) return [];
     else {
@@ -15,7 +29,6 @@ function getData() {
         return roughAr;
     }
 }
-
 function processData(roughAr) {
     let nodeHash = {};
     nodeHash.length = roughAr.length;
@@ -54,14 +67,6 @@ function shuffle(current, arr) {
 
     [arr[current], arr[j]] = [arr[j], arr[current]];
 };
-// function shuffle(current, arr) {
-//     let i, j;
-//     for (i = arr.length - 1; i > 0; i--) {
-//         j = Math.floor(Math.random() * (i + 1));
-//         [arr[i], arr[j]] = [arr[j], arr[i]];
-//     }
-//     return arr;
-// };
 
 function contractEdge(nodesOb, edges, edge) {
     let nodes = nodesOb.nodes;
@@ -171,29 +176,28 @@ function kargerMin(nodesOb, edges) {
     }
     return min;
 }
-let min = Infinity;
+// let min = Infinity;
 
-let sample = getData();
-let edges = getEdges(sample);
+// let sample = getData();
+// let edges = getEdges(sample);
 
-let nodes = processData(sample);
+// let nodes = processData(sample);
 
-for (let i = 0; i < 2000; i++) {
-    if (i % 100 == 0) {
-        console.time("mili");
-    }
-    let val = kargerMin(nodes, edges);
-    if (i % 100 == 0) {
-        console.timeLog("mili");
-    }
-    if (val < min) {
-        min = val;
-    }
+// for (let i = 0; i < 2000; i++) {
+//     if (i % 100 == 0) {
+//         console.time("mili");
+//     }
+//     let val = kargerMin(nodes, edges);
+//     if (i % 100 == 0) {
+//         console.timeLog("mili");
+//     }
+//     if (val < min) {
+//         min = val;
+//     }
 
-    if (i % 1000 === 0) {
-        console.log(`i = ${i} \nval = ${val}\nmin = ${min} `);
+//     if (i % 1000 === 0) {
+//         console.log(`i = ${i} \nval = ${val}\nmin = ${min} `);
 
 
-    }
-}
-console.log(min);
+//     }
+// }
