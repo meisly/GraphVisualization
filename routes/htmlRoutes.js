@@ -20,4 +20,11 @@ module.exports = function(app) {
   app.get("/data/kargerMinCut.txt", function(req, res) {
     res.sendFile(path.join(__dirname, "../data/kargerMinCut.txt"));
   })
+  app.get("/data/mediumG.txt", function(req, res) {
+    res.sendFile(path.join(__dirname, "../data/mediumG.txt"));
+  })
+  app.get("/data/:file", function(req, res) {
+    let fileN = req.params.file;
+    res.sendFile(path.join(__dirname, `../data/${fileN}`));
+  })
 };

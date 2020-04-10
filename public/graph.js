@@ -1,5 +1,8 @@
 let qtree;
+let k;
+
 function setup() {
+    
     createCanvas(windowWidth, windowHeight);
     frameRate(20);
 
@@ -18,25 +21,47 @@ function setup() {
             }
         }
     })
+//     axios.get('./data/tinyG.txt').then(res => {
+//         let data = res.data;
+//         let graphDic = {};
+//         if (!data) return [];
+//         else {
+//             let roughAr = data.split("\n")
+//                 .map(elem => elem.split(" ")
+//                     .filter(ele => ele != "")
+//                     .map(el => el.trim()))
+//                 .filter(el => el.length > 1);
 
-    // getData().then(data =>{
-    //     console.log("getting data")
-    //     for(let i = 0;i<data.length;i++){
-    //         particles.push(new Particle(data[i][0], data[i].slice(1)));
-    //       }
-    // });
-
+//             for (let i = 0; i < roughAr.length; i++){
+//                 let key = roughAr[i][0];
+//                 let value = roughAr[i][1];
+//                 if (!graphDic[key]) {
+//                     graphDic[key] = [value];
+//                 } else {
+//                     graphDic[key].push(value);
+//                 }
+//                 if(!graphDic[value]){
+//                     graphDic[value] = [key];
+//                 }
+//             }
+//             for (let key in graphDic) {
+//                 particles[key] = new Particle(key, graphDic[key]);
+//             }
+//         }
+//     })
+    k = 2*sqrt((width*height)/200);
 }
 
 // an object to add multiple particles
 let particles = {};
-let stopper = 10000;
-let check = null;
+let check = 50;
+let stopper = 100000;
 
 function draw() {
     background('#0f0f0f');
     rectMode(CENTER);
-    let boundary = new Rectangle(width, height, width, height);
+    let boundary = new Rectangle(width/2, height/2, width/2, height/2);
+    
     qtree = new QuadTree(boundary, 4);
     for (let i in particles) {
         let p = particles[i];
@@ -48,7 +73,7 @@ function draw() {
     qtree.show();
 
     for (let i in particles) {
-        if (stopper > 0) {
+        if (stopper> 0) {
             let p = particles[i];
             p.repelParticles(width, height);
 
@@ -60,6 +85,8 @@ function draw() {
             }
             p.moveParticle(width, height);
             stopper--;
+            
+            
 
         }
 
@@ -79,8 +106,7 @@ class Particle {
         this.connections = connections;
         this.xForce = 0;
         this.yForce = 0;
-        this.xSpeed = 0;
-        this.ySpeed = 0;
+
     }
 
     // creation of a particle.
@@ -95,74 +121,61 @@ class Particle {
     }
 
     attractParticle(p2) {
-        let k = 2;
+ 
 
         let stretch = dist(this.x, this.y, p2.x, p2.y);
         let deltaX = this.x - p2.x;
         let deltaY = this.y - p2.y;
         let angle = atan(deltaY / deltaX);
-        let force = k ** 2 / stretch;
-
+        let force = (stretch**2) / k;
+        if (!force){
+            return
+        }
         deltaY > 0 ? (this.yForce += force * sin(angle)) : (this.yForce -= (force * sin(angle)));
-        deltaX > 0 ? (this.xForce += force * cos(angle)) : (this.xForce -= force * cos(angle));
+        deltaX > 0 ? (this.xForce -= force * cos(angle)) : (this.xForce += force * cos(angle));
 
     }
-    repelParticles(width, height) {
-        let k = 20;
-        let range = new Rectangle(this.x, this.y, 200, 200);
+    repelParticles() {
+
+        let range = new Rectangle(this.x, this.y, 100, 100);
         let nearPoints = qtree.query(range);
 
         for (let i = 0; i < nearPoints.length; i++) {
             let p2 = nearPoints[i];
             if (this.label == p2.label) {
-                return
+                continue;
             }
             let stretch = dist(this.x, this.y, p2.x, p2.y);
             let deltaX = this.x - p2.x;
             let deltaY = this.y - p2.y;
             let angle = atan(deltaY / deltaX);
-            let force = (stretch) / k;
-
-            deltaY > 0 ? (this.yForce += force * sin(angle)) : (this.yForce -= (force * sin(angle)));
+            let force = ((k ** 2) / stretch);
+            if (!force){
+                continue;
+            }
+            deltaY > 0 ? (this.yForce -= force * sin(angle)) : (this.yForce += (force * sin(angle)));
             deltaX > 0 ? (this.xForce += force * cos(angle)) : (this.xForce -= force * cos(angle));
+
+
 
         }
 
-        // let horizBounderyForce = k/(this.x - 0) + k/(this.x - width);
-        // this.xForce += horizBounderyForce;
-        // let vertBoundaryForce = k/(this.y - 0) + k/(this.y - height);
-        // this.yForce += vertBoundaryForce;
 
     }
 
-    moveParticle(height, width) {
-        if (this.label == check) {
-            console.log(`deltaX ${this.xForce} deltaY ${this.yForce}`)
+    moveParticle(width, height) {
+        if (!this.xForce || !this.yForce) {
+            this.xForce = 0;
+            this.yForce = 0;
+            return;
         }
-        if (this.x < 0) {
-            this.xForce *= -1 * (this.x);
-        } else if (this.x > width) {
-            this.xForce *= -1 * (this.x / width);
-        } else if (this.x < 100) {
-            this.xForce += this.xForce / this.x;
-        } else if (width - this.x < 50) {
-            this.xForce -= this.xForce / (width - this.x);
-        }
-        if (this.y < 0) {
-            this.yForce *= -1 * this.y;
-        } else if (this.y > height) {
-            this.yForce *= -1 * (this.y / height);
-        } else if (this.y - 100 < 0) {
-            this.yForce -= this.yForce / this.y;
-        } else if (height - this.y < 100) {
-            this.yForce -= this.yForce / (height - this.y);
-        }
+        this.x += Math.min(Math.max(0.1*this.xForce, -width/10), width/10);
+        this.y += Math.min(Math.max(0.1*this.yForce, -height/10), height/10);
+        // this.x += 0.1*this.xForce;
+        // this.y += 0.1*this.yForce;
+        this.x = Math.min(width -10, Math.max(10, this.x));
+        this.y = Math.min(height -10, Math.max(10, this.y));
 
-        this.x += this.xForce;
-        this.y += this.yForce;
-        if (this.label == check) {
-            console.log(`deltaX ${this.xForce} deltaY ${this.yForce}`)
-        }
 
         this.xForce = 0;
         this.yForce = 0;
@@ -172,11 +185,11 @@ class Particle {
     // between particles which are less than a certain distance apart
     joinParticles(connection) {
         connection.forEach(connect => {
-            if (this.label == check) {
-                stroke('rgba(0,255,0,1)');
-                line(this.x, this.y, particles[connect].x, particles[connect].y);
-            }
-            stroke('rgba(255,255,255,0.01)');
+            // if (dist(this.x, this.y, particles[connect].x, particles[connect].y) > 200) {
+            //     stroke('rgba(0,255,0,1)');
+            //     line(this.x, this.y, particles[connect].x, particles[connect].y);
+            // }
+            stroke('rgba(255,255,255,0.05)');
             line(this.x, this.y, particles[connect].x, particles[connect].y);
 
         })
