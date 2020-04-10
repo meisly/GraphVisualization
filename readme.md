@@ -3,5 +3,5 @@ This is a personal project to explore graph visualization and to create visualiz
 
 
 ## Graph with Clusters
-[Graph with Clusters](./public/images/chrome_7W80bxeXZ0.png)
+![Graph with Clusters](./public/images/chrome_7W80bxeXZ0.png)
 
